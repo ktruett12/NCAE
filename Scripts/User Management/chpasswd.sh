@@ -1,16 +1,18 @@
-#! /bin/bash
+#!/bin/bash
 
-# Get a list of all users except system users and root
-users=$(getent passwd | grep -vE '(nologin|false|sync|halt)' | cut -d: -f1)
+# Prompt the user to enter the new password
+read -sp "Enter the new password: " new_password
+echo
 
-# Iterate through each user and change their password
-for user in $users; do
-    # Change the user's password to "K!dst@bl3"
-    echo -e "K!dst@bl3\nK!dst@bl3" | passwd $user
-
-    # Output the changed password
-    echo "Password changed for user: $user"
-    echo "New password: K!dst@bl3"
+# Iterate over all user accounts except root
+for user in $(awk -F':' '{ if ($3 >= 1000 && $1 != "nobody") print $1 }' /etc/passwd); do
+    # Change the password for each user
+    echo -e "$new_password\n$new_password" | passwd "$user"
+    if [ $? -eq 0 ]; then
+        echo "Password changed successfully for user: $user"
+    else
+        echo "Failed to change password for user: $user"
+    fi
 done
 
-echo "Password change process complete."
+echo "All user passwords have been changed."
